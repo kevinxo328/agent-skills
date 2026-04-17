@@ -14,7 +14,7 @@ Currently, this repository includes the following skills:
 
 ## Installation & Usage
 
-You can easily install and manage these skills using the [`skills`](https://skills.sh) CLI tool. It automatically detects your installed AI agents and places the skills in the correct directories (e.g., `.gemini/`, `.cursor/rules/`, `.claude/skills/`).
+You can easily install and manage these skills using the [`skills`](https://skills.sh) CLI tool.
 
 ### Prerequisites
 
@@ -22,49 +22,36 @@ Ensure you have Node.js and `npx` installed.
 
 ### Installing Skills
 
-You can install skills directly from this GitHub repository.
-
-#### 1. Project-Level Installation (Recommended for Teams)
-Install the skills into your current project directory. The AI agent will use these skills only when working within this project.
-
+#### 1. Project-Level (Recommended)
 ```bash
-# Install all skills in this repository to the current project
-npx skills add <your-github-username>/agent-skills
+# Install all skills
+npx skills add kevinxo328/agent-skills
 
-# Install a specific skill to the current project
-npx skills add <your-github-username>/agent-skills --skill commit-message
+# Install a specific skill
+npx skills add kevinxo328/agent-skills --skill commit-message
 ```
 
-#### 2. Global Installation (Personal Level)
-Install the skills globally on your machine. The AI agent will have access to these skills across all your projects.
-
+#### 2. Global-Level
 ```bash
 # Install all skills globally
-npx skills add <your-github-username>/agent-skills -g
+npx skills add kevinxo328/agent-skills -g
 
 # Install a specific skill globally
-npx skills add <your-github-username>/agent-skills --skill commit-message -g
+npx skills add kevinxo328/agent-skills --skill commit-message -g
 ```
 
-### Advanced Usage
+### Updating Skills
 
-**Specify Target Agents:**
-If you only want to install the skills for a specific AI agent, use the `--agent` flag:
+Keep your skills up to date with the latest improvements.
 
 ```bash
-# Install only for Gemini CLI
-npx skills add <your-github-username>/agent-skills --agent gemini-cli
+# Update all installed skills
+npx skills update -y
 ```
 
-**List Installed Skills:**
+### More Information
 
-```bash
-# List project skills
-npx skills ls
-
-# List global skills
-npx skills ls -g
-```
+For advanced usage (specifying agents, listing skills, etc.), please refer to the [official skills CLI documentation](https://github.com/vercel-labs/skills).
 
 ## Contributing
 

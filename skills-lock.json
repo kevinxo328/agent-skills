@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "skills": {
+    "commit-message": {
+      "source": "kevinxo328/agent-skills",
+      "sourceType": "github",
+      "computedHash": "bdf74ffe727d5ac2d6051a652786530e23b0d57cb8db2d9525cf76fda168da8d"
+    }
+  }
+}

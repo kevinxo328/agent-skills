@@ -9,6 +9,7 @@ These skills provide standard operating procedures (SOPs), specialized knowledge
 Currently, this repository includes the following skills:
 
 *   **`commit-message`**: Write high-quality Git commit messages following the Conventional Commits specification.
+*   **`humanizer-tw`**: Remove signs of AI-generated writing from text to make it sound more natural and human-written (Taiwan Traditional Chinese version).
 
 *(More skills will be added soon!)*
 

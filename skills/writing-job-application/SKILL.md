@@ -1,6 +1,6 @@
 ---
 name: writing-job-application
-version: 1.0.0
+version: 1.1.0
 description: Use when the user mentions cover letters, job applications, HR questions, recommendation letters, job application Q&A, self-introductions, applications, or asks for help responding to recruiter questions or preparing application materials.
 allowed-tools:
   - Read
@@ -16,18 +16,23 @@ Help users write cover letters and job application responses that will hold an H
 
 Before you work on any job application content, you must first locate and read the user's resume.
 
-1. **Automatic search**: Start by using `Glob` to search for all `.pdf` and `.md` files under `./resumes/` and the global path `~/.agents/resumes/`.
-2. **Handling multiple files**: If you find more than one file, list them with both filename and source path, then ask the user which version to use for this session.
-3. **Handling no file found (AI-assisted setup)**:
-   - If no resume is found, proactively tell the user: "I couldn't find your resume. Please provide the file path, or drag the file into this terminal."
-   - Once the user provides a path, use a `Bash` command such as `mkdir -p ~/.agents/resumes && cp [user-provided-path] ~/.agents/resumes/` to save it in the global directory.
-   - **Important**: After saving it, use that directory as the source of truth in later conversations so the user only has to provide it once.
+1.  **Automatic search**: Use the provided script `./scripts/scan-resumes.sh` to search for all `.pdf` and `.md` files under `./resumes/` and the global path `~/.agents/resumes/`.
+2.  **Handling multiple files**: If you find more than one file, the script will list them with metadata. Ask the user which version to use for this session.
+3.  **Handling no file found (AI-assisted setup)**:
+    - If no resume is found, proactively tell the user: "I couldn't find your resume. Please provide the file path, or drag the file into this terminal."
+    - Once the user provides a path, use a `Bash` command such as `mkdir -p ~/.agents/resumes && cp [user-provided-path] ~/.agents/resumes/` to save it in the global directory.
+    - **Important**: After saving it, use that directory as the source of truth in later conversations so the user only has to provide it once.
+
+## Scripts
+
+- `./scripts/scan-resumes.sh`: Lists resumes from local and global paths, sorted by most recent.
+- `./scripts/check-format.py`: Validates the output is plain text, counts words/chars, and checks for prohibited symbols (Markdown, lists, em-dash).
 
 ## Hard Output Rules (Read First, Follow Every Time)
 
 **Plain-text output only**: Never use Markdown. No `**bold**`, no `-` bullet points, no `##` headings, no tables, and no em dash (`—`). The output must be plain text that can be pasted directly into any field.
 
-Before you output anything, ask yourself: "Can this be pasted directly into a Google Form?" If you see any Markdown symbols, remove them and rewrite.
+Before you output anything, use `./scripts/check-format.py` to verify your response. If you see any Markdown symbols or special characters, remove them and rewrite.
 
 ## Core Principles
 
@@ -115,16 +120,17 @@ Based on the role, pull out the most relevant projects, quantified achievements,
 
 ## Mandatory Self-Check Before Output
 
-Before outputting anything, check each item below. If any one of them fails, fix it first.
+**REQUIRED**: Run `python3 ./scripts/check-format.py [output-text]` (or pipe content to it) before finalizing your response.
 
 | Check item | Warning sign |
 | ---------- | ------------ |
+| Linter passed? | `./scripts/check-format.py` reports any error |
 | Plain text? | Symbols such as `**`, `-`, `##`, or `—` appear |
-| No em dash? | The writing uses `—` to create pauses, side notes, or dramatic emphasis, which makes it sound AI-generated |
-| Opening works? | It starts with lines like "Company X is preparing..." or "I firmly believe..." or "I am very passionate about..." |
-| Project focus? | It mentions too many different projects, more than 2, or spends time on old and irrelevant experience |
-| No filler? | It uses phrases such as "Not only that" or "It is worth mentioning that" |
-| Logical flow? | The paragraphs do not transition naturally and sound like slide notes |
+| No em dash? | The writing uses `—` to create pauses, side notes, or dramatic emphasis |
+| Opening works? | It starts with lines like "Company X is preparing..." or "I firmly believe..." |
+| Project focus? | It mentions too many different projects (limit to 1-2) |
+| No filler? | Phrases like "Not only that" or "It is worth mentioning that" |
+| Logical flow? | Paragraphs do not transition naturally |
 
 ## Writing Quality Standard
 

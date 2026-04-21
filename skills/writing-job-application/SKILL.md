@@ -1,6 +1,6 @@
 ---
 name: writing-job-application
-version: 1.1.0
+version: 1.2.0
 description: Use when the user mentions cover letters, job applications, HR questions, recommendation letters, job application Q&A, self-introductions, applications, or asks for help responding to recruiter questions or preparing application materials.
 allowed-tools:
   - Read
@@ -26,6 +26,7 @@ Before you work on any job application content, you must first locate and read t
 ## Scripts
 
 - `./scripts/scan-resumes.sh`: Lists resumes from local and global paths, sorted by most recent.
+- `./scripts/read-pdf.py`: Standard way to read PDF resumes using `pdftotext` to avoid permission issues. Usage: `python3 ./scripts/read-pdf.py [path-to-pdf]`.
 - `./scripts/check-format.py`: Validates the output is plain text, counts words/chars, and checks for prohibited symbols (Markdown, lists, em-dash).
 
 ## Hard Output Rules (Read First, Follow Every Time)
@@ -67,7 +68,7 @@ Strongly recommended to ask, even if you suspect the user may not have it:
 
 ### Step 2: Read the Resume (Filter It with a Senior-Level Lens)
 
-Use `Read` to load the resume chosen through the discovery flow above. If it is a PDF, read the raw content directly. The tool will handle that automatically.
+If the resume is a PDF, you **MUST** use the Python script to read it: `python3 ./scripts/read-pdf.py [path-to-resume]`. This ensures consistent reading and avoids permission issues with global directories. For Markdown resumes, you may use the standard `Read` tool.
 
 Based on the role, pull out the most relevant projects, quantified achievements, core skills, work history, and awards.
 

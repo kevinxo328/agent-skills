@@ -2,11 +2,16 @@
 name: commit-message
 description: >-
   Write high-quality Git commit messages following the Conventional Commits specification.
-  Use this skill whenever the user provides a git diff, describes code changes, or asks
-  for help writing a commit message. Triggers include: write a commit, commit message,
-  git commit, how do I commit this, what should my commit say, or when the user pastes
-  a diff or describes what they changed. Always use this skill proactively, even if the
-  user just describes what they changed without explicitly asking for a commit message.
+  Use this skill whenever the user commits code, provides a git diff, describes code
+  changes, or asks for help writing a commit message. Triggers include: commit,
+  commit files, commit staged files, commit all, commit changes, commit this,
+  write a commit, commit message, git commit, git add and commit, stage and commit,
+  how do I commit this, what should my commit say, or when the user pastes a diff or
+  describes what they changed. Always use this skill proactively when the user is about
+  to commit — even if they only describe what changed or simply say "commit" without
+  explicitly asking for a message.
+metadata:
+  version: "1.1.1"
 ---
 
 # Commit Message Skill
@@ -52,9 +57,15 @@ Write commit messages following Conventional Commits v1.0.0. Always capture **Wh
 
 ## Output Rules
 
-1. Always output a ready-to-copy message in a code block.
-2. If context is insufficient, produce a best-guess then ask for adjustments.
-3. If changes cover unrelated concerns, flag it and suggest splitting into separate commits.
+1. Draft the commit message.
+2. **Strip AI signatures** — pipe the draft through `strip-ai-signature.sh` before presenting it:
+   ```bash
+   echo "$MSG" | ./skills/commit-message/strip-ai-signature.sh
+   ```
+   This removes `Co-Authored-By:` lines for Claude, Copilot, GPT, Gemini, and Anthropic.
+3. Output the cleaned message in a code block.
+4. If context is insufficient, produce a best-guess then ask for adjustments.
+5. If changes cover unrelated concerns, flag it and suggest splitting into separate commits.
 
 ## Examples
 

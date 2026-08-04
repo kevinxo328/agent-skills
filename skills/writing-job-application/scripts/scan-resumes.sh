@@ -18,13 +18,22 @@ file_metadata() {
 collect_resumes() {
     local dir=$1
     local file
+    local list_file
     if [ ! -d "$dir" ]; then
         return
     fi
 
+    list_file=$(mktemp "${TMPDIR:-/tmp}/scan-resumes.XXXXXX")
+    if ! find "$dir" -maxdepth 1 -type f \( -name "*.pdf" -o -name "*.md" \) -print0 > "$list_file"; then
+        printf 'RESUME_SCAN_ERROR=%s\n' "$dir" >&2
+        rm -f "$list_file"
+        return 1
+    fi
+
     while IFS= read -r -d '' file; do
         entries+=("$(file_metadata "$file")")
-    done < <(find "$dir" -maxdepth 1 -type f \( -name "*.pdf" -o -name "*.md" \) -print0)
+    done < "$list_file"
+    rm -f "$list_file"
 }
 
 format_date() {

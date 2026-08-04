@@ -6,7 +6,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
-SKILL_DIR = Path(__file__).resolve().parents[1]
+REPO_ROOT = Path(__file__).resolve().parents[2]
+SKILL_DIR = REPO_ROOT / "skills" / "writing-job-application"
 SCRIPTS_DIR = SKILL_DIR / "scripts"
 
 
@@ -89,6 +90,41 @@ class ScriptCliTests(unittest.TestCase):
         self.assertLess(
             result.stdout.index(str(newer)), result.stdout.index(str(older))
         )
+
+    def test_resume_scanner_does_not_report_zero_when_search_is_blocked(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            local_dir = root / "local"
+            global_dir = root / "global"
+            bin_dir = root / "bin"
+            local_dir.mkdir()
+            global_dir.mkdir()
+            bin_dir.mkdir()
+            fake_find = bin_dir / "find"
+            fake_find.write_text(
+                "#!/bin/sh\necho 'find: Operation not permitted' >&2\nexit 1\n",
+                encoding="utf-8",
+            )
+            fake_find.chmod(0o755)
+            env = os.environ.copy()
+            env["PATH"] = f"{bin_dir}{os.pathsep}{env['PATH']}"
+
+            result = subprocess.run(
+                [
+                    "bash",
+                    str(SCRIPTS_DIR / "scan-resumes.sh"),
+                    str(local_dir),
+                    str(global_dir),
+                ],
+                capture_output=True,
+                text=True,
+                check=False,
+                env=env,
+            )
+
+        self.assertNotEqual(result.returncode, 0)
+        self.assertNotIn("RESUME_COUNT=0", result.stdout)
+        self.assertIn("RESUME_SCAN_ERROR=", result.stderr)
 
 
 if __name__ == "__main__":

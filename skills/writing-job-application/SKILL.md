@@ -1,7 +1,8 @@
 ---
 name: writing-job-application
-version: 1.3.0
 description: Write evidence-grounded cover letters, job-application answers, interview self-introductions, and recruiter responses from a user's resume. Use when the user asks to draft or revise these application materials for senior, lead, or management roles.
+metadata:
+  version: "1.3.1"
 allowed-tools:
   - Read
   - Glob
@@ -24,11 +25,13 @@ Read [references/formats.md](references/formats.md) after identifying the docume
 
 Use a resume or facts supplied in the current conversation first. A purely logistical recruiter response does not require a resume.
 
-When factual candidate background is required and no resume is available, resolve the directory containing this `SKILL.md` as `SKILL_DIR`, keep the current working directory at the project root, and run:
+When factual candidate background is required and no resume is available, resolve the directory containing this `SKILL.md` as `SKILL_DIR` and keep the current working directory at the project root. If the environment gates access outside the working directory, obtain read access to the expanded absolute path of `$HOME/.agents/resumes` before running:
 
 ```bash
 bash "$SKILL_DIR/scripts/scan-resumes.sh" "$PWD/resumes" "$HOME/.agents/resumes"
 ```
+
+Check the exit status before handling `RESUME_COUNT`. On a permission error, obtain read access through the environment's permission flow and rerun the scan once. If access remains blocked, ask for an attached resume or another readable path. Only treat `RESUME_COUNT=0` as an empty result after a successful scan.
 
 Handle the `RESUME_COUNT` result as follows:
 
@@ -66,6 +69,6 @@ Return only the finished application content by default so it can be pasted dire
 
 ## Script contracts
 
-- `scripts/scan-resumes.sh [local-directory] [global-directory]` prints a stable result count and resumes sorted by modification time.
+- `scripts/scan-resumes.sh [local-directory] [global-directory]` prints a stable result count and resumes sorted by modification time, or exits nonzero when an existing directory cannot be scanned.
 - `scripts/read-pdf.py PDF_PATH` prints extracted text to standard output and reports failures through a nonzero exit.
 - `scripts/check-format.py [TEXT_FILE]` reads a UTF-8 file, or standard input when no file is provided, and rejects non-pasteable formatting.

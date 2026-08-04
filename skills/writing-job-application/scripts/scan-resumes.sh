@@ -1,45 +1,50 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-# Define paths to search
-LOCAL_PATH="./resumes"
-GLOBAL_PATH="$HOME/.agents/resumes"
+set -euo pipefail
 
-# Function to list resumes in a directory
-list_resumes() {
-    local dir=$1
-    if [ -d "$dir" ]; then
-        # Find .pdf and .md files
-        find "$dir" -maxdepth 1 \( -name "*.pdf" -o -name "*.md" \) 2>/dev/null | while read -r file; do
-            # Using stat for macOS (Darwin)
-            # %m: modification time, %z: size
-            stat -f "%m|%z|%N" "$file"
-        done
+LOCAL_PATH=${1:-"$PWD/resumes"}
+GLOBAL_PATH=${2:-"$HOME/.agents/resumes"}
+entries=()
+
+file_metadata() {
+    local file=$1
+    if stat -f "%m|%z|%N" "$file" >/dev/null 2>&1; then
+        stat -f "%m|%z|%N" "$file"
+    else
+        stat -c "%Y|%s|%n" "$file"
     fi
 }
 
-# Collect all resumes
-resumes=$( (list_resumes "$LOCAL_PATH"; list_resumes "$GLOBAL_PATH") | sort -rn )
+collect_resumes() {
+    local dir=$1
+    local file
+    if [ ! -d "$dir" ]; then
+        return
+    fi
 
-if [ -z "$resumes" ]; then
-    echo "No resumes found in $LOCAL_PATH or $GLOBAL_PATH"
+    while IFS= read -r -d '' file; do
+        entries+=("$(file_metadata "$file")")
+    done < <(find "$dir" -maxdepth 1 -type f \( -name "*.pdf" -o -name "*.md" \) -print0)
+}
+
+format_date() {
+    local timestamp=$1
+    if date -r "$timestamp" "+%Y-%m-%d %H:%M:%S" >/dev/null 2>&1; then
+        date -r "$timestamp" "+%Y-%m-%d %H:%M:%S"
+    else
+        date -d "@$timestamp" "+%Y-%m-%d %H:%M:%S"
+    fi
+}
+
+collect_resumes "$LOCAL_PATH"
+collect_resumes "$GLOBAL_PATH"
+
+printf 'RESUME_COUNT=%s\n' "${#entries[@]}"
+if [ "${#entries[@]}" -eq 0 ]; then
     exit 0
 fi
 
-echo "Found the following resumes (sorted by most recent):"
-echo "--------------------------------------------------"
-printf "%-25s | %-10s | %s\n" "Modified Date" "Size" "Path"
-
-while IFS='|' read -r timestamp size path; do
-    date_str=$(date -r "$timestamp" "+%Y-%m-%d %H:%M:%S")
-    
-    # Simple human readable size since numfmt might not be on all macOS
-    if [ "$size" -ge 1048576 ]; then
-        size_h="$(echo "scale=1; $size/1048576" | bc) MiB"
-    elif [ "$size" -ge 1024 ]; then
-        size_h="$(echo "scale=1; $size/1024" | bc) KiB"
-    else
-        size_h="$size B"
-    fi
-    
-    printf "%-25s | %-10s | %s\n" "$date_str" "$size_h" "$path"
-done <<< "$resumes"
+printf 'MODIFIED_AT\tSIZE_BYTES\tPATH\n'
+printf '%s\n' "${entries[@]}" | sort -t '|' -k1,1nr | while IFS='|' read -r timestamp size path; do
+    printf '%s\t%s\t%s\n' "$(format_date "$timestamp")" "$size" "$path"
+done

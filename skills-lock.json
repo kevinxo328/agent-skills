@@ -6,6 +6,12 @@
       "sourceType": "github",
       "skillPath": "skills/commit-message/SKILL.md",
       "computedHash": "293a8d4456ee3aa52fa8de60c28d04978b9e2215842d63ed7c9241dc72e3c6ff"
+    },
+    "writing-great-skills": {
+      "source": "mattpocock/skills",
+      "sourceType": "github",
+      "skillPath": "skills/productivity/writing-great-skills/SKILL.md",
+      "computedHash": "4deb21855fb4deeeb1b8217b041faff003fd0c915d24a22f636851c520bc9c5c"
     }
   }
 }

@@ -1,6 +1,6 @@
 ---
 name: writing-job-application
-version: 1.2.0
+version: 1.2.1
 description: Use when the user mentions cover letters, job applications, HR questions, recommendation letters, job application Q&A, self-introductions, applications, or asks for help responding to recruiter questions or preparing application materials.
 allowed-tools:
   - Read
@@ -14,13 +14,14 @@ Help users write cover letters and job application responses that will hold an H
 
 ## Resume Discovery and Storage Flow (Required in the First Conversation)
 
-Before you work on any job application content, you must first locate and read the user's resume.
+**CRITICAL MANDATE**: You MUST execute `./scripts/scan-resumes.sh` silently using tool execution in your very first turn BEFORE generating any response to the user. Do NOT ask the user whether they have a resume or where it is located before running this search.
 
-1.  **Automatic search**: Use the provided script `./scripts/scan-resumes.sh` to search for all `.pdf` and `.md` files under `./resumes/` and the global path `~/.agents/resumes/`.
-2.  **Handling multiple files**: If you find more than one file, the script will list them with metadata. Ask the user which version to use for this session.
-3.  **Handling no file found (AI-assisted setup)**:
-    - If no resume is found, proactively tell the user: "I couldn't find your resume. Please provide the file path, or drag the file into this terminal."
-    - Once the user provides a path, use a `Bash` command such as `mkdir -p ~/.agents/resumes && cp [user-provided-path] ~/.agents/resumes/` to save it in the global directory.
+1.  **Automatic search**: Run `./scripts/scan-resumes.sh` first to search for all `.pdf` and `.md` files under `./resumes/` and `~/.agents/resumes/`.
+2.  **Handling a single file found**: Automatically load and use that resume without asking the user.
+3.  **Handling multiple files**: If more than one file is found, list them with metadata and ask the user which version to use for this session.
+4.  **Handling no file found (AI-assisted setup)**:
+    - ONLY if the script returns 0 results, tell the user: "I couldn't find your resume in `~/.agents/resumes/` or `./resumes/`. Please provide the file path, or drag the file into this terminal."
+    - Once the user provides a path, use a command such as `mkdir -p ~/.agents/resumes && cp [user-provided-path] ~/.agents/resumes/` to save it in the global directory.
     - **Important**: After saving it, use that directory as the source of truth in later conversations so the user only has to provide it once.
 
 ## Scripts
@@ -39,6 +40,7 @@ Before you output anything, use `./scripts/check-format.py` to verify your respo
 
 **CRITICAL RULE - ZERO HALLUCINATION & STRICT FACTUAL MAPPING**:
 You are strictly forbidden from inventing, inferring, or hallucinating any information. Every skill, metric, project, and experience mentioned in your output MUST exist explicitly in the user's resume. Furthermore, you must maintain the exact mapping of **what** was done, **when** it was done, and **where** it was done.
+
 - Do NOT mix up skills, projects, or timelines between different roles or periods.
 - Do NOT attribute an achievement from one project to another.
 - If the resume lacks details for a specific job requirement, do NOT fabricate a connection. Focus on the actual strengths present in the resume instead.
@@ -111,34 +113,34 @@ Based on the role, pull out the most relevant projects, quantified achievements,
 
 **Banned AI-like patterns (these must not appear):**
 
-| Type | Do not use |
-| ---- | ---------- |
-| Opening pattern | Inflated company-vision openings such as "Company X is preparing to build..." or "That vision immediately caught my attention" |
-| Opening pattern | Openers such as "I am very passionate about...", "I firmly believe...", or "I am honored to..." |
-| Opening pattern | Overly self-centered frames such as "I have always been solving the same problem" |
-| Structural pattern | "You mentioned X in the job post, and that perfectly aligns with my attitude toward Y." Show the alignment through results instead |
-| Structural pattern | Packing in too many unrelated projects. Pick 1 to 2 recent core projects and build the piece around them |
-| Structural pattern | Ending every paragraph with a neat topic sentence, as if writing a school essay |
-| Punctuation pattern | Using em dashes (`—`) to force transitions or add manufactured dramatic pauses. This is also a common AI pattern. Use normal periods, commas, or rewrite the sentence |
-| Filler phrase | Phrases such as "Not only that," "In addition," or "It is worth mentioning that" |
-| Filler phrase | Empty lines such as "I am passionate about this role," or ending every paragraph with an exclamation mark |
+| Type                  | Do not use                                                                                                                                                                           |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Opening pattern       | Inflated company-vision openings such as "Company X is preparing to build..." or "That vision immediately caught my attention"                                                       |
+| Opening pattern       | Openers such as "I am very passionate about...", "I firmly believe...", or "I am honored to..."                                                                                      |
+| Opening pattern       | Overly self-centered frames such as "I have always been solving the same problem"                                                                                                    |
+| Structural pattern    | "You mentioned X in the job post, and that perfectly aligns with my attitude toward Y." Show the alignment through results instead                                                   |
+| Structural pattern    | Packing in too many unrelated projects. Pick 1 to 2 recent core projects and build the piece around them                                                                             |
+| Structural pattern    | Ending every paragraph with a neat topic sentence, as if writing a school essay                                                                                                      |
+| Punctuation pattern   | Using em dashes (`—`) to force transitions or add manufactured dramatic pauses. This is also a common AI pattern. Use normal periods, commas, or rewrite the sentence                |
+| Filler phrase         | Phrases such as "Not only that," "In addition," or "It is worth mentioning that"                                                                                                     |
+| Filler phrase         | Empty lines such as "I am passionate about this role," or ending every paragraph with an exclamation mark                                                                            |
 | Senior-level red flag | Learner framing such as "I hope to join your company so I can learn more" or "This would be a great learning opportunity." Senior professionals are there to solve problems as peers |
-| Senior-level red flag | Keyword stacking such as "I am proficient in A, B, C, and D..." A tool-heavy list without business context reads as junior |
+| Senior-level red flag | Keyword stacking such as "I am proficient in A, B, C, and D..." A tool-heavy list without business context reads as junior                                                           |
 
 ## Mandatory Self-Check Before Output
 
 **REQUIRED**: Run `python3 ./scripts/check-format.py [output-text]` (or pipe content to it) before finalizing your response.
 
-| Check item | Warning sign |
-| ---------- | ------------ |
+| Check item           | Warning sign                                                                                                                                            |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Zero Hallucinations? | The output mentions skills, metrics, projects, or experiences not explicitly in the resume, or mixes timelines and technologies between different roles |
-| Linter passed? | `./scripts/check-format.py` reports any error |
-| Plain text? | Symbols such as `**`, `-`, `##`, or `—` appear |
-| No em dash? | The writing uses `—` to create pauses, side notes, or dramatic emphasis |
-| Opening works? | It starts with lines like "Company X is preparing..." or "I firmly believe..." |
-| Project focus? | It mentions too many different projects (limit to 1-2) |
-| No filler? | Phrases like "Not only that" or "It is worth mentioning that" |
-| Logical flow? | Paragraphs do not transition naturally |
+| Linter passed?       | `./scripts/check-format.py` reports any error                                                                                                           |
+| Plain text?          | Symbols such as `**`, `-`, `##`, or `—` appear                                                                                                          |
+| No em dash?          | The writing uses `—` to create pauses, side notes, or dramatic emphasis                                                                                 |
+| Opening works?       | It starts with lines like "Company X is preparing..." or "I firmly believe..."                                                                          |
+| Project focus?       | It mentions too many different projects (limit to 1-2)                                                                                                  |
+| No filler?           | Phrases like "Not only that" or "It is worth mentioning that"                                                                                           |
+| Logical flow?        | Paragraphs do not transition naturally                                                                                                                  |
 
 ## Writing Quality Standard
 
